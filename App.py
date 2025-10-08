@@ -29,11 +29,19 @@ if (choice in ("Insert","Edit")):
             elif (sum([1 for i in newName if str(i).isdigit()]) > 0): st.error("Input nama harus Alphabet semua")
             elif (sum([1 for i in newGrade if str(i).isalpha()]) > 0): st.error("Input nilai harus angka semua")
             else:
-                if (not em.getData("NIM",nim)): st.success("Nim not found")
+                msg = em.editData(
+                    str(nim),
+                    {
+                        "Nim": str(newNim).strip(),
+                        "Nama": str(newName).strip(),
+                        "Nilai": int(newGrade.strip()),
+                    },
+                    saveChange,
+                )
+                if "Sukses" in msg:
+                    st.success(msg)
                 else:
-                    result = em.editData(str(nim),{"NIM":str(newNim).strip(),"Nama":str(newName).strip(),"Nilai":int(newGrade.strip())},saveChange)
-                    if (em.getData("NIM",newNim)): st.success("edited")
-                    else: st.error("edit failed")
+                    st.error(msg)
 
     if (choice == "Insert"):    
         if (st.button("Insert")):
@@ -41,11 +49,18 @@ if (choice in ("Insert","Edit")):
             elif (sum([1 for i in newName if str(i).isdigit()]) > 0): st.error("Input nama harus Alphabet semua")
             elif (sum([1 for i in newGrade if str(i).isalpha()]) > 0): st.error("Input nilai harus angka semua")
             else:
-                if (em.getData("NIM",newNim)): st.error("Nim already exist")
+                msg = em.insertData(
+                    {
+                        "Nim": str(newNim).strip(),
+                        "Nama": str(newName).strip(),
+                        "Nilai": int(newGrade.strip()),
+                    },
+                    saveChange,
+                )
+                if "Sukses" in msg:
+                    st.success(msg)
                 else:
-                    em.insertData({"NIM":str(newNim).strip(),"Nama":str(newName).strip(),"Nilai":int(newGrade.strip())},saveChange)
-                    if (em.getData("NIM",newNim)): st.success("inserted")
-                    else: st.error("insert fail")
+                    st.error(msg)
                                 
 # TODO: buatkan sistem filter data tabel berdasarkan kolom yang memiliki data angka
 option = ["None",">","<","=","<=",">="]
@@ -57,8 +72,20 @@ else:
     targetFilterColumn = st.selectbox("Target Column",["NIM","Nilai"]) # pilihan kolom
     filter = st.text_input("Filter Nilai") # input angka filter
 
-if (filter != ""):
-    if (filterSelectBox == ">"):
-        st.table(em.getDataFrame()[em.getDataFrame()[targetFilterColumn] > int(filter)]) # cara filter
-    # TODO: lanjutkan code di atas
-    # note: cara filter ada di modul
+    if filter != "":
+        df = em.getDataFrame()
+        try:
+            val int(filter)
+            if filterSelectBox == ">":
+                st.table(df[df[targetFilterColumn] > val])
+            elif filterSelectBox == "<":
+                st.table(df[df[targetFilterColumn] < val])
+            elif filterSelectBox == "=":
+                st.table(df[df[targetFilterColumn] = val])
+            elif filterSelectBox == "<=":
+                st.table(df[df[targetFilterColumn] <= val])
+            elif filterSelectBox == ">=":
+                st.table(df[df[targetFilterColumn] >= val])
+        
+        except:
+            st.error("Masukan angka yang valid untuk filter")

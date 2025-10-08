@@ -18,23 +18,51 @@ class excelManager:
     def insertData(self,newData:dict,saveChange:bool=False):
         # kerjakan disini
         # clue cara insert row: df = pandas.concat([df, pandas.DataFrame([{"NIM":0,"Nama":"Udin","Nilai":1000}])], ignore_index=True)
+        if not newData.get("NIM") or not newData.get("Nama"):
+            return "Data tidak lengkap"
+        if self.getData("NIM", str(newData["NIM"])):
+            return "NIM Sudah ada"
+        if str(newData["Nama"]).isdigit():
+            return "Nama tidak boleh angka"
         
-        if (saveChange): self.saveChange()
-        pass
+        new_row = pandas.DataFrame([NewData])
+        self.__data = pandas.concat([sel.__data, new_row], ignore_index=True)
+
+        if (saveChange): 
+            self.saveChange()
+        return "Data Sukses di masukan"
     
     def deleteData(self, targetedNim:str,saveChange:bool=False):
         # kerjakan disini
         # clue cara delete row: df.drop(indexBaris, inplace=True); contoh: df.drop(0,inplace=True)
+        found = self.getData("NIM", str(targetNim))
+        if not found:
+            return "Nim tidak ditemukan"
         
+        self.__data.drop(found["Row"], inplace=True)
+        self.__data.reset_index(drop=True, inplace=True)
         
-        if (saveChange): self.saveChange()
-        pass
+        if (saveChange): 
+            self.saveChange()
+        return "Data Sukses di hapus"
     
     def editData(self, targetedNim:str, newData:dict,saveChange:bool=False) -> dict:
         # kerjakan disini
         # clue cara ganti value: df.at[indexBaris,namaKolom] = value; contoh: df.at[0,ID] = 1
-        if (saveChange): self.saveChange()
-        pass
+        found = self.getData("NIM", str(targetNim))
+        if not found:
+            return "Nim tidak ditemukan"
+        if str(newData["Nama"]).isdigit():
+            return "Nama tidak boleh angka"
+        
+        row = found["Row"]
+        for key, value in newData.items():
+            if key in self.__data.columns:
+                self.__data.at[row, key] = value
+
+        if (saveChange): 
+            self.saveChange()
+        return "Data Sukses di edit"
     
                     
     def getData(self, colName:str, data:str) -> dict:
@@ -44,7 +72,8 @@ class excelManager:
         collumnIndex = [i for i in range(len(collumn)) if (collumn[i].lower().strip() == colName.lower().strip())] 
         
         # validasi jika input kolom tidak ada pada data excel
-        if (len(collumnIndex) != 1): return None
+        if (len(collumnIndex) != 1): 
+            return None
         
         # nama kolom yang sudah pasti benar dan ada
         colName = collumn[collumnIndex[0]]
